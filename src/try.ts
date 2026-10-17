@@ -1,0 +1,5 @@
+export type CaseMatcher<T,R>={Success:(v:T)=>R;Failure:(e:unknown)=>R};
+export abstract class Try<T>{ static of<T>(fn:()=>T):Try<T>{try{return new Success(fn())}catch(e){return new Failure<T>(e)}} static async ofAsync<T>(fn:()=>Promise<T>):Promise<Try<T>>{try{return new Success(await fn())}catch(e){return new Failure<T>(e)}} abstract map<U>(fn:(v:T)=>U):Try<U>; abstract fold<R>(m:CaseMatcher<T,R>):R; abstract match<R>(m:CaseMatcher<T,R>):R; case<R>(m:CaseMatcher<T,R>):R{return this.match(m)} }
+export class Success<T> extends Try<T>{constructor(private v:T){super()} map<U>(fn:(v:T)=>U):Try<U>{return Try.of(()=>fn(this.v))} fold<R>(m:CaseMatcher<T,R>):R{return m.Success(this.v)} match<R>(m:CaseMatcher<T,R>):R{return m.Success(this.v)} }
+export class Failure<T> extends Try<T>{constructor(private e:unknown){super()} map<U>():Try<U>{return new Failure<U>(this.e)} fold<R>(m:CaseMatcher<T,R>):R{return m.Failure(this.e)} match<R>(m:CaseMatcher<T,R>):R{return m.Failure(this.e)} }
+export const attempt=<T>(fn:()=>T):Try<T>=>Try.of(fn); export const attemptAsync=<T>(fn:()=>Promise<T>):Promise<Try<T>>=>Try.ofAsync(fn);

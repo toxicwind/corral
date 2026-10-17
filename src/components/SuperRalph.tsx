@@ -1,0 +1,242 @@
+import { Ralph, Parallel } from "smthrs";
+import type { AgentLike } from "smthrs";
+import { selectAllTickets, selectReviewTickets, selectProgressSummary, selectLand, selectTicketReport } from "../selectors";
+import type { RalphOutputs, Ticket, SmithersCtx } from "../selectors";
+import React, { type ReactNode } from "react";
+import { type MergeQueueOrderingStrategy } from "../mergeQueue/coordinator";
+import { computePipelineStage, isJobComplete, type TicketSchedule, type TicketState } from "./TicketScheduler";
+import { TicketScheduler } from "./TicketScheduler";
+import { AgenticMergeQueue } from "./AgenticMergeQueue";
+import { Job } from "./Job";
+import type { ScheduledJob } from "../scheduledTasks";
+
+// --- Props ---
+
+export type SuperRalphProps = {
+  ctx: SmithersCtx<RalphOutputs>;
+  focuses: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  outputs: RalphOutputs;
+
+  projectId: string;
+  projectName: string;
+  specsPath: string;
+  referenceFiles: string[];
+  buildCmds: Record<string, string>;
+  testCmds: Record<string, string>;
+  codeStyle: string;
+  reviewChecklist: string[];
+
+  maxConcurrency: number;
+  taskRetries?: number;
+  /**
+   * Finite-by-default: hard ceiling on Ralph loop iterations. When a loop
+   * reaches it without its `until` predicate going true, the run fails
+   * (onMaxReached="fail") so exhaustion is loud, never silent spinning.
+   */
+  maxIterations?: number;
+
+  agents: Record<string, {
+    agent: any;
+    description: string;
+    isScheduler?: boolean;
+    isMergeQueue?: boolean;
+  }>;
+
+  progressFile?: string;
+  findingsFile?: string;
+  commitConfig?: { prefix?: string; mainBranch?: string; emojiPrefixes?: string };
+  testSuites?: Array<{ name: string; command: string; description: string }>;
+  focusTestSuites?: Record<string, { suites: string[]; setupHints: string[]; testDirs: string[] }>;
+  focusDirs?: Record<string, string[]>;
+  preLandChecks?: string[];
+  postLandChecks?: string[];
+  mergeQueueOrdering?: MergeQueueOrderingStrategy;
+  maxSpeculativeDepth?: number;
+  mergeQueueId?: string;
+  children?: ReactNode;
+};
+
+type AgentPool = Record<string, { agent: any; description: string; isScheduler?: boolean; isMergeQueue?: boolean }>;
+
+function resolveAgent(pool: AgentPool, agentId: string | undefined): AgentLike {
+  if (agentId && pool[agentId]) return pool[agentId].agent;
+  return Object.values(pool)[0]?.agent;
+}
+
+function buildAgentPoolDescription(pool: AgentPool): string {
+  const entries = Object.entries(pool);
+  if (entries.length === 0) return "(no agents registered)";
+  const rows = entries.map(([id, { description }]) => `| ${id} | ${description} |`);
+  return ["| Agent ID | Description |", "|----------|-------------|", ...rows].join("\n");
+}
+
+/**
+ * Check if there are any tickets that can advance to their next pipeline stage.
+ * A ticket can advance if it has completed its current stage but hasn't landed yet.
+ */
+function hasTicketsReadyToAdvance(ticketStates: TicketState[]): boolean {
+  return ticketStates.some(t => {
+    // If ticket has landed or report is complete, it's done
+    if (t.landed || t.reportComplete) return false;
+
+    // Tickets at any stage can potentially advance to the next stage
+    // as long as they haven't completed the entire pipeline
+    const stage = t.pipelineStage;
+    return stage === "research" ||
+           stage === "plan" ||
+           stage === "implement" ||
+           stage === "test" ||
+           stage === "build_verify" ||
+           stage === "spec_review" ||
+           stage === "code_review" ||
+           stage === "review_fix" ||
+           stage === "not_started";
+  });
+}
+
+// --- Main Component ---
+
+export function SuperRalph({
+  ctx, focuses, outputs,
+  projectId, projectName, specsPath, referenceFiles, buildCmds, testCmds,
+  codeStyle, reviewChecklist, maxConcurrency, taskRetries = 3,
+  maxIterations = 25,
+  agents: agentPool,
+  progressFile = "PROGRESS.md",
+  findingsFile = "docs/test-suite-findings.md",
+  commitConfig = {},
+  testSuites = [],
+  focusTestSuites = {},
+  focusDirs = {},
+  preLandChecks = [],
+  postLandChecks = [],
+  maxSpeculativeDepth = 3,
+}: SuperRalphProps) {
+
+  const { findings: reviewFindings } = selectReviewTickets(ctx, focuses);
+  const { completed: completedTicketIds, unfinished: unfinishedTickets } = selectAllTickets(ctx, focuses);
+  const progressSummary = selectProgressSummary(ctx);
+  const { prefix = "📝", mainBranch = "main", emojiPrefixes = "✨ feat, 🐛 fix, ♻️ refactor, 📝 docs, 🧪 test" } = commitConfig;
+
+  // Resolve scheduler + merge queue agents from pool flags
+  const agentIds = Object.keys(agentPool);
+  const defaultAgentId = agentIds[0];
+  const schedulerAgentId = Object.entries(agentPool).find(([, e]) => e.isScheduler)?.[0] ?? defaultAgentId;
+  const mergeQueueAgentId = Object.entries(agentPool).find(([, e]) => e.isMergeQueue)?.[0] ?? schedulerAgentId;
+  const schedulerAgent = resolveAgent(agentPool, schedulerAgentId);
+  const agentPoolContext = buildAgentPoolDescription(agentPool);
+  const ciCommands = postLandChecks.length > 0 ? postLandChecks : Object.values(testCmds);
+
+  // Lookups
+  const ticketMap = new Map<string, Ticket>(unfinishedTickets.map(t => [t.id, t]));
+  const focusMap = new Map(focuses.map(f => [f.id, f]));
+
+  // Ticket pipeline states (for scheduler context)
+  const ticketStates: TicketState[] = unfinishedTickets.map(ticket => ({
+    ticket,
+    pipelineStage: computePipelineStage(ctx, ticket.id),
+    landed: selectLand(ctx, ticket.id)?.merged === true,
+    reportComplete: (() => {
+      const land = selectLand(ctx, ticket.id);
+      const report = selectTicketReport(ctx, ticket.id);
+      const evicted = land?.evicted === true && land?.merged !== true;
+      return report?.status === "complete" && !evicted;
+    })(),
+  }));
+
+  // Merge queue tickets
+  const mergeQueueTickets = ticketStates
+    .filter(t => t.reportComplete && !t.landed)
+    .map(t => ({
+      ticketId: t.ticket.id, ticketTitle: t.ticket.title,
+      ticketCategory: t.ticket.category, priority: t.ticket.priority,
+      reportComplete: t.reportComplete, landed: t.landed,
+      worktreePath: `/tmp/workflow-wt-${t.ticket.id}`,
+    }));
+
+  // --- Derive active jobs from ALL scheduler outputs (not just the latest) ---
+  // This ensures jobs from earlier scheduler iterations aren't lost when
+  // a new schedule is produced before previous jobs complete.
+  const allSchedules = ctx.outputs("ticket_schedule") as Array<any>;
+  const jobsByJobId = new Map<string, ScheduledJob>();
+  for (const schedule of allSchedules) {
+    const jobs = Array.isArray(schedule?.jobs) ? schedule.jobs : [];
+    for (const job of jobs) {
+      if (!job?.jobId) continue;
+      jobsByJobId.set(job.jobId, {
+        jobId: job.jobId,
+        jobType: job.jobType,
+        agentId: job.agentId,
+        ticketId: job.ticketId ?? null,
+        focusId: job.focusId ?? null,
+        createdAtMs: Date.now(),
+      });
+    }
+  }
+  const activeJobs: ScheduledJob[] = [...jobsByJobId.values()]
+    .filter(job => !isJobComplete(ctx, job));
+  const activeCount = activeJobs.length;
+
+  // --- Finite-by-default: one shared quiescence predicate for all loops ---
+  // The engine re-renders this component as outputs land and re-reads `until`
+  // every loop iteration, so this boolean is a live exit condition, not a
+  // one-shot. Classic Ralph is loop-until-done; `until={false}` was never the
+  // pattern, it was a broken Ralph.
+  //
+  // A single shared predicate (rather than per-loop done flags) avoids
+  // circular exit dependencies: no loop waits on another loop's done state,
+  // all three observe the same work state and exit together.
+  const schedulerRan = allSchedules.length > 0;
+  const allWorkComplete =
+    schedulerRan &&
+    !hasTicketsReadyToAdvance(ticketStates) &&
+    activeJobs.length === 0 &&
+    mergeQueueTickets.length === 0;
+
+  // Shared props for <Job /> components
+  const jobProps = {
+    ctx, outputs, retries: taskRetries,
+    ticketMap, focusMap,
+    projectName, specsPath, referenceFiles, buildCmds, testCmds,
+    codeStyle, reviewChecklist, progressFile, findingsFile,
+    prefix, mainBranch, emojiPrefixes, testSuites, focusTestSuites, focusDirs,
+    completedTicketIds, progressSummary, reviewFindings, focuses,
+  };
+
+  return (
+    // 2026-09-21 (ralph-pathfinder): SINGLE outer Ralph loop containing all
+    // three phases. The old three-sibling-loops structure never converged:
+    // the scheduler loop ran to maxIterations before the execution loop ever
+    // got a turn, so scheduled jobs never ran and allWorkComplete stayed
+    // false -> RALPH_MAX_REACHED on every non-simple task. With one loop,
+    // each iteration schedules, executes, and merges, so the shared
+    // allWorkComplete predicate can actually become true.
+    <Ralph until={allWorkComplete} maxIterations={maxIterations} onMaxReached="fail">
+      {/* Phase 1: Scheduler - schedules jobs whenever there's capacity */}
+      {activeCount < maxConcurrency && (
+        <TicketScheduler
+          ctx={ctx} ticketStates={ticketStates} activeJobs={activeJobs}
+          agentPoolContext={agentPoolContext} focuses={focuses}
+          maxConcurrency={maxConcurrency} agent={schedulerAgent}
+          output={outputs.ticket_schedule} completedTicketIds={completedTicketIds}
+        />
+      )}
+
+      {/* Phase 2: Execution - runs scheduled jobs in parallel */}
+      <Parallel maxConcurrency={maxConcurrency}>
+        {activeJobs.map(job => (
+          <Job key={job.jobId} job={job} agent={resolveAgent(agentPool, job.agentId)} {...jobProps} />
+        ))}
+      </Parallel>
+
+      {/* Phase 3: Merge queue - lands completed work */}
+      <AgenticMergeQueue
+        ctx={ctx} outputs={outputs} tickets={mergeQueueTickets}
+        agent={resolveAgent(agentPool, mergeQueueAgentId)}
+        postLandChecks={ciCommands} preLandChecks={preLandChecks}
+        repoRoot={process.cwd()} mainBranch={mainBranch}
+        maxSpeculativeDepth={maxSpeculativeDepth} output={outputs.land}
+      />
+    </Ralph>
+  );
+}
