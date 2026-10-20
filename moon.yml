@@ -1,0 +1,8 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# corral — ranch component: ticket-driven workflow orchestration.
+language: 'typescript'
+stack: 'backend'
+tags:
+  - 'ranch'
+  - 'orchestrator'
