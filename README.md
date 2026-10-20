@@ -60,7 +60,7 @@ graph TD
     
     JOB --> SELECTORS[selectors.ts<br/>ticket state]
     JOB --> AGENTREG[agentRegistry.ts<br/>rate limiting]
-    JOB --> NIMPROXY[nimProxy.ts<br/>flock / cuttinggate routing]
+    JOB --> NIMPROXY[nimProxy.ts<br/>hodos / cuttinggate routing]
 ```
 
 ### The Critical Fix (2026-09-21)
@@ -187,7 +187,7 @@ All secrets loading is now portable (no `/home/toxic/.secrets` hardcoded):
 | `ANTHROPIC_API_KEY` | Anthropic key | — |
 | `ESTATE_ROUTER_URL` / `CUTTINGGATE_URL` | Router URL | `http://127.0.0.1` |
 | `ESTATE_ROUTER_PORT` / `CUTTINGGATE_PORT` | Router port | `25200` |
-| `FLOCK_API_KEY` | Flock proxy (comma-separated for rotation) | falls back to `NIM_PROXY_API_KEY` |
+| `HODOS_API_KEY` | Hodos proxy (comma-separated for rotation) | falls back to `NIM_PROXY_API_KEY` |
 | `GATEHOUSE_BIN` | Gatehouse binary | `gatehouse` |
 | `GATEHOUSE_CONFIG` | Gatehouse MCP config | `~/.config/corral/gatehouse/mcp_config.json` |
 | `CLAUDE_REAL_BIN` | Real Claude binary | `~/.local/bin/claude.nim-shim-real` |
@@ -229,7 +229,7 @@ All secrets loading is now portable (no `/home/toxic/.secrets` hardcoded):
 
 - **`selectors.ts`** — Ticket state selectors (`selectAllTickets`, `selectProgressSummary`, etc.)
 - **`agentRegistry.ts`** — Rate limiting (`rateLimitedUntil`, `isAvailable`, `recordRateLimit`)
-- **`nimProxy.ts`** — Flock integration, key rotation, `proxyEnvOverrides()`, `NimProxyKeyPool`
+- **`nimProxy.ts`** — Hodos integration, key rotation, `proxyEnvOverrides()`, `NimProxyKeyPool`
 - **`durability.ts`** — Cross-run ticket state, resumable tickets
 - **`telemetricOracle.ts`** — Non-invasive EKG verdicts
 - **`preload.ts`** — Effect `unstable/*` compat shims (only when native resolution fails)

@@ -1,10 +1,10 @@
 /**
- * nimProxy — flock integration for super-ralph (nim-proxy absorbed by flock 2026-09-17).
+ * nimProxy — hodos integration for super-ralph (nim-proxy absorbed by hodos 2026-09-17).
  *
- * Routes every model call through the local flock proxy (default
+ * Routes every model call through the local hodos proxy (default
  * http://127.0.0.1:25104) instead of direct provider APIs:
  *
- * - `resolveProxyConfig()` reads FLOCK_API_KEY (comma-separated for
+ * - `resolveProxyConfig()` reads HODOS_API_KEY (comma-separated for
  *   multi-key rotation), falling back to NIM_PROXY_API_KEY (deprecated alias), then ANTHROPIC_API_KEY / NVIDIA_API_KEY.
  *   Throws NimProxyConfigError with an actionable message when no key is set.
  * - `proxyEnvOverrides()` builds the env overrides (NIM_BASE_URL,
@@ -24,11 +24,10 @@
  * Stats and errors use opaque "key#N" labels only.
  */
 
-const DEFAULT_ROUTER_PORT = process.env.FLOCK_PORT || "25193";
+const DEFAULT_ROUTER_PORT = process.env.HODOS_PORT || "25193";
 export const DEFAULT_PROXY_BASE_URL =
-  process.env.FLOCK_BASE_URL ||
-  process.env.ESTATE_ROUTER_URL ||
-  `http://127.0.0.1:${DEFAULT_ROUTER_PORT}`;
+  process.env.HODOS_BASE_URL || // explicit hodos origin (may carry /v1)
+  `http://127.0.0.1:${DEFAULT_ROUTER_PORT}`; // hodos is the master router; never let a bare host-only ESTATE_ROUTER_URL shadow the port
 export const DEFAULT_PROXY_MODEL = "gemini-eap-openai/gemini-3.8-flash";
 const DEFAULT_RETRY_AFTER_MS = 60_000;
 
@@ -45,13 +44,13 @@ export class NimProxyConfigError extends Error {
  */
 export function resolveProxyApiKey(): string {
   const key =
-    process.env.FLOCK_API_KEY ||
+    process.env.HODOS_API_KEY ||
     process.env.NIM_PROXY_API_KEY || // deprecated compat alias
     process.env.ANTHROPIC_API_KEY ||
     process.env.NVIDIA_API_KEY;
   if (!key || !key.trim()) {
     throw new NimProxyConfigError(
-      "flock: no API key found. Set FLOCK_API_KEY to your flock client " +
+      "hodos: no API key found. Set HODOS_API_KEY to your hodos client " +
         "key (comma-separated for multi-key rotation; NIM_PROXY_API_KEY still accepted as a deprecated alias)."
     );
   }
@@ -71,13 +70,13 @@ export function resolveProxyConfig(): ProxyConfig {
     .filter(Boolean);
   if (apiKeys.length === 0) {
     throw new NimProxyConfigError(
-      "flock: FLOCK_API_KEY contained no usable keys."
+      "hodos: HODOS_API_KEY contained no usable keys."
     );
   }
   const baseUrl = (
-    process.env.FLOCK_BASE_URL || process.env.NIM_PROXY_BASE_URL || DEFAULT_PROXY_BASE_URL
+    process.env.HODOS_BASE_URL || process.env.NIM_PROXY_BASE_URL || DEFAULT_PROXY_BASE_URL
   ).replace(/\/+$/, "").replace(/\/v1$/, "");
-  const model = process.env.FLOCK_MODEL || process.env.NIM_PROXY_MODEL || DEFAULT_PROXY_MODEL;
+  const model = process.env.HODOS_MODEL || process.env.NIM_PROXY_MODEL || DEFAULT_PROXY_MODEL;
   return { baseUrl, apiKeys, model };
 }
 
@@ -240,7 +239,7 @@ export type ProxyChatOptions = {
 };
 
 /**
- * OpenAI-compatible chat completions through the flock proxy with per-key
+ * OpenAI-compatible chat completions through the hodos proxy with per-key
  * rotation on 429s. Throws a descriptive error (no key material) when all
  * keys are exhausted or rate-limited.
  */
@@ -257,6 +256,25 @@ export async function proxyChatCompletions(
 
   let lastError: Error | null = null;
   const attempts = pool.size;
+  // Direct reasoning caps (2026-10-19): gpt-oss effort verified live via
+  // :25193 (reasoning tokens 295 -> 6 at "low"; "medium" here because this
+  // path does real coding work). Nemotron-3 per NVIDIA docs:
+  // reasoning_budget + chat_template_kwargs; GLM reasoning_effort "low"
+  // only (medium verified to burn fully, 2026-10-19). A 400 flips stripReasoning so
+  // later key attempts omit the params (a rejecting upstream degrades to
+  // the old uncapped behavior instead of failing).
+  let stripReasoning = false;
+  const reasoningParams = (): Record<string, unknown> => {
+    if (stripReasoning) return {};
+    if (model.startsWith("openai/gpt-oss")) return { reasoning_effort: "medium" };
+    if (model.includes("nemotron-3"))
+      return {
+        reasoning_budget: 4096,
+        chat_template_kwargs: { enable_thinking: true, low_effort: true },
+      };
+    if (model.includes("glm")) return { reasoning_effort: "low" };
+    return {};
+  };
   for (let i = 0; i < attempts; i++) {
     const key = pool.nextAvailable();
     if (!key) break;
@@ -272,6 +290,7 @@ export async function proxyChatCompletions(
           max_tokens: opts.maxTokens ?? 4096,
           temperature: opts.temperature ?? 1.0,
           messages,
+          ...reasoningParams(),
         }),
       });
       if (resp.status === 429) {
@@ -281,10 +300,16 @@ export async function proxyChatCompletions(
       }
       if (!resp.ok) {
         const body = await resp.text().catch(() => "");
+        if (resp.status === 400 && !stripReasoning) stripReasoning = true;
         throw new Error("nim-proxy HTTP " + resp.status + ": " + body.slice(0, 300));
       }
       const data = (await resp.json()) as any;
-      const text: string = data?.choices?.[0]?.message?.content ?? "";
+      const msg = data?.choices?.[0]?.message;
+      // NIM-wide behavior (verified 2026-10-15, 65-model sweep): several
+      // models return reasoning_content ONLY (or bare reasoning) with empty content. Fall back
+      // so a reasoning-only response is not misclassified as an empty
+      // completion (the ghost-empty disease).
+      const text: string = msg?.content || msg?.reasoning_content || msg?.reasoning || "";
       if (!text.trim()) throw new Error("nim-proxy returned an empty completion");
       pool.recordSuccess(key);
       return text;

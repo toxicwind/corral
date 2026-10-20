@@ -64,11 +64,11 @@ window = pending.slice(0, maxSpeculativeDepth)
 6. Else evict failing ticket, re-test downstream
 ```
 
-## Nim Proxy / Flock Routing
+## Nim Proxy / Hodos Routing
 
 ```
 resolveProxyConfig()
-  ├─ FLOCK_API_KEY (comma-separated) → key pool
+  ├─ HODOS_API_KEY (comma-separated) → key pool
   ├─ fallback NIM_PROXY_API_KEY (deprecated)
   └─ fallback ANTHROPIC_API_KEY / NVIDIA_API_KEY
 

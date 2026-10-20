@@ -7,8 +7,8 @@ import {
   proxyEnvOverrides,
 } from "../src/nimProxy";
 
-describe("Corral nimProxy & Flock Integration", () => {
-  test("DEFAULT_PROXY_BASE_URL anchors to Flock (port 25193)", () => {
+describe("Corral nimProxy & Hodos Integration", () => {
+  test("DEFAULT_PROXY_BASE_URL anchors to Hodos (port 25193)", () => {
     expect(DEFAULT_PROXY_BASE_URL).toContain("25193");
   });
 

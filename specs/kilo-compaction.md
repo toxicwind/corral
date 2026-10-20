@@ -27,7 +27,7 @@ the main agent, which stalls in a re-invocation loop and never lands a
 ## Desired end state
 1. `small_model` is DISTINCT from `model` in the effective config and points to
    a fast, working summarizer reachable from the running kilo (`freeinference`
-   or `flock`/`openrouter`; local `beellama/exaone-4-0-1-2b-*` family is
+   or `hodos`/`openrouter`; local `beellama/exaone-4-0-1-2b-*` family is
    benchmarked at ~27ms p50, quality 2, healthy=1 by the 2026-10-02 roundup
    weights in `estate-router-ts/roundup-weights.json`).
 2. After a compaction, `session_context_epoch` gains a row and the session's
@@ -42,11 +42,11 @@ the main agent, which stalls in a re-invocation loop and never lands a
   the config change.
 - T3 Edit both configs so `small_model` differs from `model`.
 - T4 Validate the estate plugins in `/home/toxic/estate/.kilo/plugin/`
-  (flock-strategy / gatehouse / herd-models / autofixer) still register under the
+  (hodos-strategy / gatehouse / herd-models / autofixer) still register under the
   running kilo without errors.
 - T5 Run one forced compaction on a scratch session; assert a
   `session_context_epoch` row appears and `time_compacting` is set.
-- T6 Confirm flock `/v1/chat/completions` answers (bonus: route session-data
+- T6 Confirm hodos `/v1/chat/completions` answers (bonus: route session-data
   dataframe analysis through it).
 
 ## Scope / constraints

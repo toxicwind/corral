@@ -3,7 +3,7 @@
  *
  * Core Architecture Principles:
  * 1. Zero Keystroke Injection: No tmux send-keys, no C-c, no prompt contamination.
- * 2. Model Integrity: Anchors to the canonical Flock Router (:25193) without socket overriding.
+ * 2. Model Integrity: Anchors to the canonical Hodos Router (:25193) without socket overriding.
  * 3. Database Grounding: Real-time observation of .super-ralph/workflow.db SQLite state.
  * 4. Multi-Ticket Awareness: Concurrency drops and latency fluctuations treated as natural barrier syncs.
  */
