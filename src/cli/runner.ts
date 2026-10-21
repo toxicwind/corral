@@ -170,6 +170,12 @@ export async function runWorkflow(opts: RunWorkflowOpts): Promise<void> {
 
   const effectivePreload = useSharedPreload ? superRalphPreload : preloadPath;
 
+  // Estate 25xxx fleet convention (AGENTS.md, ports.env): smithers gateway
+  // binds the allocated port (25280) instead of the default 7331 so it lives
+  // in the supervised range. Only meaningful when a resident gateway boots;
+  // `up` ignores it if the run doesn't bring one up.
+  const gatewayPort = process.env.SMITHERS_GATEWAY_PORT || "25280";
+
   const args = [
     "-r",
     effectivePreload,
@@ -182,6 +188,8 @@ export async function runWorkflow(opts: RunWorkflowOpts): Promise<void> {
     runId,
     "--max-concurrency",
     String(maxConcurrency),
+    "--port",
+    gatewayPort,
   ];
 
   const env = {

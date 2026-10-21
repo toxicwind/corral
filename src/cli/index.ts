@@ -11,7 +11,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs, printHelp, getFlagString, hasFlag } from "./args";
 import { dumpCheckEnv, loadSecrets, parseFinite } from "./env";
-import { ensureWorkspace } from "./workspace";
+import { ensureWorkspace, resolveWorkspaceRoot } from "./workspace";
 
 import { getClarificationQuestions } from "./clarifications";
 import { banner, ok, err, kv, summaryBox } from "../ui/cli-style";
@@ -86,9 +86,10 @@ async function main() {
     }
   }
 
-  const requestedCwd = getFlagString(parsed.flags, "cwd")
-    ? resolve(getFlagString(parsed.flags, "cwd")!)
-    : process.cwd();
+  const explicitCwd = getFlagString(parsed.flags, "cwd");
+  const requestedCwd = explicitCwd
+    ? resolve(explicitCwd)
+    : resolveWorkspaceRoot(process.cwd());
 
   const promptArg = parsed.positional[0];
   if (!promptArg) {

@@ -7,7 +7,7 @@
 
 import { execSync, type ExecSyncOptions } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 
@@ -54,6 +54,32 @@ function seedInitialCommit(workspace: string): void {
       `corral: warning: failed to seed initial commit in ${workspace}: ${e?.message ?? e}`
     );
   }
+}
+
+/**
+ * Walk upward from a launch directory to the nearest enclosing jj/git repo
+ * root. When no explicit --cwd is passed, this lets launching from any
+ * subdirectory of a repo "just work" instead of silently defaulting to the
+ * process cwd (which may sit inside a nested folder or a non-repo dir).
+ *
+ * Returns the nearest ancestor that contains `.jj`/`.git`, or the original
+ * directory if none is found (callers fall through to normal provisioning).
+ */
+export function resolveWorkspaceRoot(launchCwd: string): string {
+	let current = resolve(launchCwd);
+	const homeDir = homedir();
+	// Stop before climbing to preserve the protected-cwd contract (never
+	// treat $HOME or / as a repo root).
+	if (current === "/" || current === homeDir) return current;
+	// eslint-disable-next-line no-constant-condition
+	while (true) {
+		if (existsSync(join(current, ".git")) || existsSync(join(current, ".jj"))) {
+			return current;
+		}
+		const parent = dirname(current);
+		if (parent === current || current === homeDir) return launchCwd;
+		current = parent;
+	}
 }
 
 /**
