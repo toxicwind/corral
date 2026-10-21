@@ -1,10 +1,10 @@
 /**
- * nimProxy — hodos integration for super-ralph (nim-proxy absorbed by hodos 2026-09-17).
+ * nimProxy — flock integration for super-ralph (nim-proxy absorbed by flock 2026-09-17).
  *
- * Routes every model call through the local hodos proxy (default
+ * Routes every model call through the local flock proxy (default
  * http://127.0.0.1:25104) instead of direct provider APIs:
  *
- * - `resolveProxyConfig()` reads HODOS_API_KEY (comma-separated for
+ * - `resolveProxyConfig()` reads FLOCK_API_KEY (comma-separated for
  *   multi-key rotation), falling back to NIM_PROXY_API_KEY (deprecated alias), then ANTHROPIC_API_KEY / NVIDIA_API_KEY.
  *   Throws NimProxyConfigError with an actionable message when no key is set.
  * - `proxyEnvOverrides()` builds the env overrides (NIM_BASE_URL,
@@ -24,10 +24,11 @@
  * Stats and errors use opaque "key#N" labels only.
  */
 
-const DEFAULT_ROUTER_PORT = process.env.HODOS_PORT || "25193";
+const DEFAULT_ROUTER_PORT = process.env.FLOCK_PORT || "25193";
 export const DEFAULT_PROXY_BASE_URL =
-  process.env.HODOS_BASE_URL || // explicit hodos origin (may carry /v1)
-  `http://127.0.0.1:${DEFAULT_ROUTER_PORT}`; // hodos is the master router; never let a bare host-only ESTATE_ROUTER_URL shadow the port
+  process.env.FLOCK_BASE_URL ||
+  process.env.ESTATE_ROUTER_URL ||
+  `http://127.0.0.1:${DEFAULT_ROUTER_PORT}`;
 export const DEFAULT_PROXY_MODEL = "gemini-eap-openai/gemini-3.8-flash";
 const DEFAULT_RETRY_AFTER_MS = 60_000;
 
@@ -44,13 +45,13 @@ export class NimProxyConfigError extends Error {
  */
 export function resolveProxyApiKey(): string {
   const key =
-    process.env.HODOS_API_KEY ||
+    process.env.FLOCK_API_KEY ||
     process.env.NIM_PROXY_API_KEY || // deprecated compat alias
     process.env.ANTHROPIC_API_KEY ||
     process.env.NVIDIA_API_KEY;
   if (!key || !key.trim()) {
     throw new NimProxyConfigError(
-      "hodos: no API key found. Set HODOS_API_KEY to your hodos client " +
+      "flock: no API key found. Set FLOCK_API_KEY to your flock client " +
         "key (comma-separated for multi-key rotation; NIM_PROXY_API_KEY still accepted as a deprecated alias)."
     );
   }
@@ -70,13 +71,13 @@ export function resolveProxyConfig(): ProxyConfig {
     .filter(Boolean);
   if (apiKeys.length === 0) {
     throw new NimProxyConfigError(
-      "hodos: HODOS_API_KEY contained no usable keys."
+      "flock: FLOCK_API_KEY contained no usable keys."
     );
   }
   const baseUrl = (
-    process.env.HODOS_BASE_URL || process.env.NIM_PROXY_BASE_URL || DEFAULT_PROXY_BASE_URL
+    process.env.FLOCK_BASE_URL || process.env.NIM_PROXY_BASE_URL || DEFAULT_PROXY_BASE_URL
   ).replace(/\/+$/, "").replace(/\/v1$/, "");
-  const model = process.env.HODOS_MODEL || process.env.NIM_PROXY_MODEL || DEFAULT_PROXY_MODEL;
+  const model = process.env.FLOCK_MODEL || process.env.NIM_PROXY_MODEL || DEFAULT_PROXY_MODEL;
   return { baseUrl, apiKeys, model };
 }
 
@@ -239,7 +240,7 @@ export type ProxyChatOptions = {
 };
 
 /**
- * OpenAI-compatible chat completions through the hodos proxy with per-key
+ * OpenAI-compatible chat completions through the flock proxy with per-key
  * rotation on 429s. Throws a descriptive error (no key material) when all
  * keys are exhausted or rate-limited.
  */

@@ -7,13 +7,15 @@ export type SuperRalphContext = {
   unfinishedTickets: any[];
   reviewFindings: string | null;
   progressSummary: string | null;
-  focuses: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  // 2026-10-19 (osprey): optional -- may be absent before InterpretConfig runs.
+  focuses?: ReadonlyArray<{ readonly id: string; readonly name: string }>;
   outputs: any;
   target: any;
 };
 
 export type UseSuperRalphConfig = {
-  focuses: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  // 2026-10-19 (osprey): optional -- may be absent before InterpretConfig runs.
+  focuses?: ReadonlyArray<{ readonly id: string; readonly name: string }>;
   outputs: any;
   target: any;
 };
@@ -23,8 +25,8 @@ export type UseSuperRalphConfig = {
  * Use this for controlled component pattern or to access workflow state.
  */
 export function useSuperRalph(ctx: SmithersCtx<any>, config: UseSuperRalphConfig): SuperRalphContext {
-  const { findings: reviewFindings } = selectReviewTickets(ctx, config.focuses);
-  const { completed: completedTicketIds, unfinished: unfinishedTickets } = selectAllTickets(ctx, config.focuses);
+  const { findings: reviewFindings } = selectReviewTickets(ctx, config.focuses ?? []);
+  const { completed: completedTicketIds, unfinished: unfinishedTickets } = selectAllTickets(ctx, config.focuses ?? []);
   const progressSummary = selectProgressSummary(ctx);
 
   return {
@@ -33,7 +35,7 @@ export function useSuperRalph(ctx: SmithersCtx<any>, config: UseSuperRalphConfig
     unfinishedTickets,
     reviewFindings,
     progressSummary,
-    focuses: config.focuses,
+    focuses: config.focuses ?? [],
     outputs: config.outputs,
     target: config.target,
   };

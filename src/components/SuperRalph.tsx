@@ -14,19 +14,24 @@ import type { ScheduledJob } from "../scheduledTasks";
 
 export type SuperRalphProps = {
   ctx: SmithersCtx<RalphOutputs>;
-  focuses: ReadonlyArray<{ readonly id: string; readonly name: string }>;
+  // 2026-10-19 (osprey): optional -- the generated workflow spreads
+  // the interpret_config output (or a focuses-less FALLBACK_CONFIG)
+  // at tree-build time, before InterpretConfig has run.
+  focuses?: ReadonlyArray<{ readonly id: string; readonly name: string }>;
   outputs: RalphOutputs;
 
-  projectId: string;
-  projectName: string;
-  specsPath: string;
-  referenceFiles: string[];
-  buildCmds: Record<string, string>;
-  testCmds: Record<string, string>;
-  codeStyle: string;
-  reviewChecklist: string[];
+  // 2026-10-19 (osprey): optional -- undefined until the
+  // interpret_config output lands and the engine re-renders.
+  projectId?: string;
+  projectName?: string;
+  specsPath?: string;
+  referenceFiles?: string[];
+  buildCmds?: Record<string, string>;
+  testCmds?: Record<string, string>;
+  codeStyle?: string;
+  reviewChecklist?: string[];
 
-  maxConcurrency: number;
+  maxConcurrency?: number;
   taskRetries?: number;
   /**
    * Finite-by-default: hard ceiling on Ralph loop iterations. When a loop
@@ -98,8 +103,12 @@ function hasTicketsReadyToAdvance(ticketStates: TicketState[]): boolean {
 
 export function SuperRalph({
   ctx, focuses, outputs,
-  projectId, projectName, specsPath, referenceFiles, buildCmds, testCmds,
-  codeStyle, reviewChecklist, maxConcurrency, taskRetries = 3,
+  // 2026-10-19 (osprey): defaults keep the first eager render
+  // total; the re-render after InterpretConfig carries real values.
+  projectId = "", projectName = "", specsPath = "",
+  referenceFiles = [], buildCmds = {}, testCmds = {},
+  codeStyle = "", reviewChecklist = [], maxConcurrency = 8,
+  taskRetries = 3,
   maxIterations = 25,
   agents: agentPool,
   progressFile = "PROGRESS.md",
@@ -112,9 +121,13 @@ export function SuperRalph({
   postLandChecks = [],
   maxSpeculativeDepth = 3,
 }: SuperRalphProps) {
+  // 2026-10-19 (osprey): the engine renders this component before
+  // InterpretConfig produces output; resolve to [] so the first
+  // render is total. Re-render picks up the real focuses.
+  const resolvedFocuses: ReadonlyArray<{ readonly id: string; readonly name: string }> = focuses ?? [];
 
-  const { findings: reviewFindings } = selectReviewTickets(ctx, focuses);
-  const { completed: completedTicketIds, unfinished: unfinishedTickets } = selectAllTickets(ctx, focuses);
+  const { findings: reviewFindings } = selectReviewTickets(ctx, resolvedFocuses);
+  const { completed: completedTicketIds, unfinished: unfinishedTickets } = selectAllTickets(ctx, resolvedFocuses);
   const progressSummary = selectProgressSummary(ctx);
   const { prefix = "📝", mainBranch = "main", emojiPrefixes = "✨ feat, 🐛 fix, ♻️ refactor, 📝 docs, 🧪 test" } = commitConfig;
 
@@ -129,7 +142,7 @@ export function SuperRalph({
 
   // Lookups
   const ticketMap = new Map<string, Ticket>(unfinishedTickets.map(t => [t.id, t]));
-  const focusMap = new Map(focuses.map(f => [f.id, f]));
+  const focusMap = new Map(resolvedFocuses.map(f => [f.id, f]));
 
   // Ticket pipeline states (for scheduler context)
   const ticketStates: TicketState[] = unfinishedTickets.map(ticket => ({
@@ -200,7 +213,7 @@ export function SuperRalph({
     projectName, specsPath, referenceFiles, buildCmds, testCmds,
     codeStyle, reviewChecklist, progressFile, findingsFile,
     prefix, mainBranch, emojiPrefixes, testSuites, focusTestSuites, focusDirs,
-    completedTicketIds, progressSummary, reviewFindings, focuses,
+    completedTicketIds, progressSummary, reviewFindings, focuses: resolvedFocuses,
   };
 
   return (
@@ -216,7 +229,7 @@ export function SuperRalph({
       {activeCount < maxConcurrency && (
         <TicketScheduler
           ctx={ctx} ticketStates={ticketStates} activeJobs={activeJobs}
-          agentPoolContext={agentPoolContext} focuses={focuses}
+          agentPoolContext={agentPoolContext} focuses={resolvedFocuses}
           maxConcurrency={maxConcurrency} agent={schedulerAgent}
           output={outputs.ticket_schedule} completedTicketIds={completedTicketIds}
         />

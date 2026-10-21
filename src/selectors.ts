@@ -73,13 +73,18 @@ type OutputType<K extends SchemaKey> = ReturnType<SmithersCtx<RalphOutputs>["out
   : unknown;
 
 export function selectReviewTickets(
-  ctx: SmithersCtx<RalphOutputs>, 
-  focuses: ReadonlyArray<{ readonly id: string }>
+  ctx: SmithersCtx<RalphOutputs>,
+  focuses?: ReadonlyArray<{ readonly id: string }> | null
 ): { tickets: Ticket[]; findings: string | null } {
   const tickets: Ticket[] = [];
   const summaryParts: string[] = [];
 
-  for (const { id } of focuses) {
+  // 2026-10-19 (osprey): smthrs 0.35.0 renders the whole workflow
+  // tree eagerly at startup, before InterpretConfig has run, so
+  // focuses is undefined on the first pass. Never throw: empty
+  // focuses yields no review tickets; the engine re-renders when
+  // the interpret_config output lands.
+  for (const { id } of focuses ?? []) {
     const review = ctx.latest("category_review", `codebase-review:${id}`);
     if (review && Array.isArray((review as any).suggestedTickets)) {
       for (const candidate of (review as any).suggestedTickets) {
@@ -124,10 +129,10 @@ export function selectProgressSummary(ctx: SmithersCtx<RalphOutputs>): string | 
 }
 
 export function selectAllTickets(
-  ctx: SmithersCtx<RalphOutputs>, 
-  focuses: ReadonlyArray<{ readonly id: string }>
+  ctx: SmithersCtx<RalphOutputs>,
+  focuses?: ReadonlyArray<{ readonly id: string }> | null
 ): { all: Ticket[]; completed: string[]; unfinished: Ticket[] } {
-  const { tickets: reviewTickets } = selectReviewTickets(ctx, focuses);
+  const { tickets: reviewTickets } = selectReviewTickets(ctx, focuses ?? []);
   const featureTickets = selectDiscoverTickets(ctx);
 
   // Merge and deduplicate tickets (review tickets take priority)

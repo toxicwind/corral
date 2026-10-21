@@ -47,7 +47,7 @@ export function renderWorkflowFile(params: RenderWorkflowParams): string {
 import { createSmithers, ClaudeCodeAgent, CodexAgent, Sequence, Ralph } from "smthrs";
 import { SuperRalph } from "${importPrefix}";
 import { InterpretConfig, FinalReport, CompletionValidator } from "${importPrefix}/components";
-import { ralphOutputSchemas, resolveProxyConfig, proxyEnvOverrides } from "${importPrefix}";
+import { ralphOutputSchemas } from "${importPrefix}";
 
 const REPO_ROOT = ${JSON.stringify(repoRoot)};
 const DB_PATH = ${JSON.stringify(dbPath)};
@@ -66,31 +66,9 @@ const { smithers, outputs, Workflow } = createSmithers(
   { dbPath: DB_PATH }
 );
 
-// Route every agent through the hodos router. smithers' ClaudeCodeAgent
-// blanks ANTHROPIC_API_KEY on spawn; feeding apiKey (key #1) stops that and
-// proxyEnvOverrides sets NIM_BASE_URL / ANTHROPIC_BASE_URL / NIM_MODEL so the
-// claude shim talks to the router instead of falling back to a keyless
-// Anthropic call. Absorb the no-key case: an unconfigured host still fans out
-// and fails loudly at the first agent call.
-function proxyAgentOverrides(): { apiKey?: string; env?: Record<string, string>; model?: string } {
-  try {
-    const config = resolveProxyConfig();
-    return {
-      apiKey: config.apiKeys[0],
-      env: proxyEnvOverrides(config),
-      model: config.model,
-    };
-  } catch {
-    return {};
-  }
-}
-
 function createClaude(systemPrompt: string) {
-  const proxy = proxyAgentOverrides();
   return new ClaudeCodeAgent({
-    ...(proxy.apiKey !== undefined ? { apiKey: proxy.apiKey } : {}),
-    ...(proxy.env ? { env: proxy.env } : {}),
-    model: proxy.model ?? process.env.NIM_MODEL ?? "claude-sonnet-4-6",
+    model: process.env.NIM_MODEL || "claude-sonnet-4-6",
     systemPrompt,
     cwd: REPO_ROOT,
     dangerouslySkipPermissions: true,

@@ -7,6 +7,8 @@ import { banner, kv } from "../ui/cli-style";
 export type ParsedArgs = {
   positional: string[];
   flags: Record<string, string | boolean>;
+  subcommand: string;
+  subargs: string[];
 };
 
 const BOOLEAN_FLAGS = new Set([
@@ -34,18 +36,43 @@ export function printHelp(): void {
     ["--report --run-id <id>", "Regenerate the HTML run report, print its path, exit"],
     ["--help", "Show this help"],
   ]);
+  console.log("\nSubcommands:");
+  kv([
+    ["delend init", "Initialize DelendAI config in the repo"],
+    ["delend guard", "Validate pending proposals against guardian rules"],
+    ["delend checkpoint", "Checkpoint work to the merge queue (shared-checkout-merge)"],
+    ["delend land", "Run the AgenticMergeQueue to land resolved tickets"],
+  ]);
   console.log("\nExamples:");
   console.log('  corral "Build a React todo app"');
-  console.log("  corral ./specs/feature.md --max-concurrency 8");
+  console.log('  corral ./specs/feature.md --max-concurrency 8');
   console.log('  corral "Add authentication" --skip-questions');
+  console.log('  corral delend land --max-speculative-depth 3');
 }
 
 export function parseArgs(argv: string[]): ParsedArgs {
   const positional: string[] = [];
   const flags: Record<string, string | boolean> = {};
+  let subcommand = "";
+  let subargs: string[] = [];
 
   for (let i = 0; i < argv.length; i += 1) {
     const token = argv[i];
+
+    // Detect subcommand boundary: positional "delend" followed by another positional
+    if (subcommand === "" && !token.startsWith("--") && positional.length > 0 && positional.length <= 1) {
+      const last = positional[positional.length - 1];
+      if (last === "delend") {
+        subcommand = token;
+        continue;
+      }
+    }
+
+    if (subcommand) {
+      subargs.push(token);
+      continue;
+    }
+
     if (!token.startsWith("--")) {
       positional.push(token);
       continue;
@@ -64,7 +91,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     i += 1;
   }
 
-  return { positional, flags };
+  return { positional, flags, subcommand, subargs };
 }
 
 export function getFlagString(

@@ -1,6 +1,6 @@
 /**
  * Workflow runner — executes Smithers workflow
- *
+ * 
  * Extracted from the bottom 400 lines of original cli/index.ts
  * Handles preload generation, bunfig, spawning smithers, reporting.
  */
@@ -14,7 +14,6 @@ import { CorralTimer } from "../timing";
 import { renderWorkflowFile } from "./generator";
 import { writeRunReport } from "../report/renderReport";
 import { detectExactReply, normalizeReply } from "../exactReply";
-import { resolveProxyConfig, proxyEnvOverrides } from "../nimProxy";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -69,26 +68,12 @@ export type RunWorkflowOpts = {
 };
 
 export async function runWorkflow(opts: RunWorkflowOpts): Promise<void> {
-  const {
-    repoRoot,
-    promptText,
-    promptSourcePath,
-    runId,
-    maxConcurrency,
-    maxIterations,
-    skipQuestions,
-    headless,
-  } = opts;
+  const { repoRoot, promptText, promptSourcePath, runId, maxConcurrency, maxIterations, skipQuestions, headless } = opts;
 
   const timer = new CorralTimer(runId);
   const superRalphSourceRoot = resolve(__dirname, "..", "..");
   const superRalphPreload = join(superRalphSourceRoot, "preload.ts");
-  const workflowPath = join(
-    superRalphSourceRoot,
-    "src",
-    "components",
-    "SuperRalph.tsx",
-  ); // Actually smithers workflow file is different
+  const workflowPath = join(superRalphSourceRoot, "src", "components", "SuperRalph.tsx"); // Actually smithers workflow file is different
   // For now, use the conventional smithers workflow path resolution
   const smithersDirCandidates = [
     join(superRalphSourceRoot, "node_modules", "smthrs"),
@@ -116,7 +101,7 @@ export async function runWorkflow(opts: RunWorkflowOpts): Promise<void> {
 
   if (!smithersPackageRoot || !smithersCliPath) {
     throw new Error(
-      `smithers package not found. Looked in ${smithersDirCandidates.join(", ")}. Run bun install.`,
+      `smithers package not found. Looked in ${smithersDirCandidates.join(", ")}. Run bun install.`
     );
   }
 
@@ -143,10 +128,7 @@ export async function runWorkflow(opts: RunWorkflowOpts): Promise<void> {
     console.log(`💾 Database: ${join(repoRoot, ".smithers", "db.sqlite")}`);
     console.log(`🆔 Run ID: ${runId}`);
     kv([
-      [
-        "agents",
-        `claude=${detectedAgents.claude} codex=${detectedAgents.codex} gh=${detectedAgents.gh}`,
-      ],
+      ["agents", `claude=${detectedAgents.claude} codex=${detectedAgents.codex} gh=${detectedAgents.gh}`],
       ["concurrency", String(maxConcurrency)],
       ["max iterations", String(maxIterations)],
     ]);
@@ -183,9 +165,7 @@ export async function runWorkflow(opts: RunWorkflowOpts): Promise<void> {
   }
 
   let execCwd: string;
-  const runningFromSource = existsSync(
-    join(superRalphSourceRoot, "node_modules"),
-  );
+  const runningFromSource = existsSync(join(superRalphSourceRoot, "node_modules"));
   execCwd = runningFromSource ? superRalphSourceRoot : repoRoot;
 
   const effectivePreload = useSharedPreload ? superRalphPreload : preloadPath;
@@ -204,26 +184,13 @@ export async function runWorkflow(opts: RunWorkflowOpts): Promise<void> {
     String(maxConcurrency),
   ];
 
-  const env: Record<string, string | undefined> = {
+  const env = {
     ...process.env,
     USE_CLI_AGENTS: "1",
     SMITHERS_DEBUG: "1",
     NODE_ENV: "production",
   };
   delete (env as any).CLAUDECODE;
-
-// Route every spawned agent (claude/codex/smithers) through the hodos
-  // router: smithers' ClaudeCodeAgent blanked ANTHROPIC_API_KEY on spawn, and
-  // without re-injecting the router env the `claude` shim fell back to real
-  // Anthropic with no key -> aborted runs. Absorb the no-key case so an
-  // unconfigured host still writes a workflow and fails loudly at the first
-  // agent call instead of in the runner.
-  try {
-    const proxy = resolveProxyConfig();
-    Object.assign(env, proxyEnvOverrides(proxy));
-  } catch {
-    // no key configured — leave env as-is; agent spawn will report the gap
-  }
 
   const proc = Bun.spawn(["bun", "--no-install", ...args], {
     cwd: execCwd,
@@ -240,24 +207,15 @@ export async function runWorkflow(opts: RunWorkflowOpts): Promise<void> {
     const reportPath = await writeReportQuietly(runId, repoRoot, promptText);
     if (!headless) {
       console.log("");
-      summaryBox(
-        "Run completed",
-        [
-          ["run id", runId],
-          ["report", reportPath ?? "(report unavailable)"],
-        ],
-        "success",
-      );
+      summaryBox("Run completed", [
+        ["run id", runId],
+        ["report", reportPath ?? "(report unavailable)"],
+      ], "success");
       console.log("");
     } else if (reportPath) {
       console.error(`report: ${reportPath}`);
     }
-    await printFinalReply(
-      join(repoRoot, ".smithers", "db.sqlite"),
-      runId,
-      headless,
-      promptText,
-    );
+    await printFinalReply(join(repoRoot, ".smithers", "db.sqlite"), runId, headless, promptText);
   } else {
     err(`Workflow exited with code ${exitCode}`);
     console.error(timingSummary);
@@ -265,11 +223,7 @@ export async function runWorkflow(opts: RunWorkflowOpts): Promise<void> {
   }
 }
 
-async function writeReportQuietly(
-  runId: string,
-  repoRoot: string,
-  promptText: string,
-): Promise<string | null> {
+async function writeReportQuietly(runId: string, repoRoot: string, promptText: string): Promise<string | null> {
   try {
     return await writeRunReport({ runId, root: repoRoot, prompt: promptText });
   } catch {
@@ -277,22 +231,13 @@ async function writeReportQuietly(
   }
 }
 
-async function printFinalReply(
-  dbPath: string,
-  runId: string,
-  headless: boolean,
-  promptText: string,
-) {
+async function printFinalReply(dbPath: string, runId: string, headless: boolean, promptText: string) {
   try {
     const { Database } = await import("bun:sqlite");
     const db = new Database(dbPath, { readonly: true });
     let row: any = null;
     try {
-      row = db
-        .query(
-          `SELECT reply FROM final_report WHERE run_id = ? ORDER BY iteration DESC LIMIT 1`,
-        )
-        .get(runId) as any;
+      row = db.query(`SELECT reply FROM final_report WHERE run_id = ? ORDER BY iteration DESC LIMIT 1`).get(runId) as any;
     } catch {
       // table absent
     }
@@ -304,15 +249,13 @@ async function printFinalReply(
         if (reply !== String(row.reply)) {
           try {
             const dbw = new Database(dbPath);
-            dbw
-              .query(`UPDATE final_report SET reply = ? WHERE run_id = ?`)
-              .run(reply, runId);
+            dbw.query(`UPDATE final_report SET reply = ? WHERE run_id = ?`).run(reply, runId);
             dbw.close();
           } catch {}
         }
         if (reply !== expected) {
           console.error(
-            `\n❌ Exact-reply mismatch: expected ${expected.length} bytes ${JSON.stringify(expected)}, got ${reply.length} bytes ${JSON.stringify(reply)}.\n`,
+            `\n❌ Exact-reply mismatch: expected ${expected.length} bytes ${JSON.stringify(expected)}, got ${reply.length} bytes ${JSON.stringify(reply)}.\n`
           );
           process.exit(1);
         }

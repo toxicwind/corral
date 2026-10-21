@@ -34,6 +34,56 @@ async function main() {
 
   if (hasFlag(parsed.flags, "check-env")) {
     dumpCheckEnv();
+    return;
+  }
+
+  // Delend subcommands: `corral delend <init|guard|checkpoint|land>`
+  if (parsed.subcommand === "delend") {
+    const { cmdInit, cmdGuard, cmdCheckpoint, cmdLand } = await import("./delend");
+    const sub = parsed.subcommand;
+    const subarg = parsed.subargs[0];
+    switch (subarg) {
+      case "init":
+        await cmdInit(requestedCwd);
+        return;
+      case "guard": {
+        // Guard reads proposals from stdin or a JSON file
+        const guardFile = parsed.subargs[1] ?? join(requestedCwd, "delendai", "proposals.json");
+        if (!existsSync(guardFile)) {
+          console.error(`No proposals file at ${guardFile}`);
+          process.exit(1);
+        }
+        const raw = await Bun.file(guardFile).text();
+        const proposals = JSON.parse(raw);
+        cmdGuard(proposals);
+        return;
+      }
+      case "checkpoint": {
+        // Checkpoint reads tickets from Smithers DB
+        const { selectAllTickets } = await import("../selectors");
+        const { Database } = await import("bun:sqlite");
+        const dbPath = join(requestedCwd, ".smithers", "workflow.db");
+        const db = new Database(dbPath, { readonly: true });
+        // Fetch tickets that have reports ready
+        const tickets = db.query("SELECT * FROM tickets ORDER BY priority DESC, created_at ASC").all();
+        cmdCheckpoint(tickets);
+        db.close();
+        return;
+      }
+      case "land": {
+        const maxDepth = parseInt(getFlagString(parsed.flags, "max-speculative-depth") ?? "3", 10);
+        // Route to AgenticMergeQueue — in production this invokes the React component
+        // For CLI, we print the merge plan
+        console.log("DelendAI Land — merge queue ready");
+        console.log(`  Max speculative depth: ${maxDepth}`);
+        console.log("  Invoke the AgenticMergeQueue component to execute.");
+        return;
+      }
+      default:
+        console.error(`Unknown delend subcommand: ${subarg}`);
+        console.log("Available: init, guard, checkpoint, land");
+        process.exit(1);
+    }
   }
 
   const requestedCwd = getFlagString(parsed.flags, "cwd")
@@ -90,7 +140,9 @@ async function main() {
       dbPath: join(repoRoot, ".smithers", "workflow.db"),
       packageScripts: {},
       detectedAgents: { claude: true, codex: true },
-      fallbackConfig: { maxConcurrency, maxIterations },
+      // 2026-10-19 (osprey): focuses: [] keeps the generated
+      // workflow's SuperRalph spread total on the first render.
+      fallbackConfig: { maxConcurrency, maxIterations, focuses: [] },
       maxIterations,
       superRalphSourceRoot: resolve(__dirname, "..", ".."),
       runningFromSource: true,

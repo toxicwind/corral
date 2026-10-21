@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/@delendai/core/schema/delendai.config.schema.json",
+  "cacheDir": ".cache/delendai",
+  "docsDir": "docs/delendai",
+  "development": {
+    "profile": "shared-checkout-merge",
+    "branches": {
+      "integration": "main",
+      "release": "main"
+    }
+  }
+}
