@@ -19,7 +19,7 @@ export {
 export {
   proposalGuardSchema,
   type ProposalGuard,
-  GuardianVerdict,
+  type GuardianVerdict,
   LandedSliceTracker,
   DEFAULT_BUDGET_LIMITS,
   type BudgetLimits,
