@@ -1,5 +1,20 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+
+/** Read the fail-fast-selected hodos model from pick-model's cache.
+ * Returns the model id, or undefined if the cache is missing/stale (> 1h). */
+function pickModelWinner(): string | undefined {
+  try {
+    const p = process.env.HOME + "/.cache/hodos-model/current.json";
+    if (!existsSync(p)) return undefined;
+    const d = JSON.parse(readFileSync(p, "utf8"));
+    if (!d?.winner) return undefined;
+    if (d?.ts && Date.now() / 1000 - d.ts > 3600) return undefined; // stale
+    return d.winner as string;
+  } catch {
+    return undefined;
+  }
+}
 
 export interface RenderWorkflowParams {
   promptText: string;
@@ -68,7 +83,17 @@ const { smithers, outputs, Workflow } = createSmithers(
 
 function createClaude(systemPrompt: string) {
   return new ClaudeCodeAgent({
-    model: process.env.NIM_MODEL || "claude-sonnet-4-6",
+    // NIM_MODEL override wins; else the fail-fast-selected model from
+    // pick-model (race/bin/pick-model.py races hodos completions and caches the
+    // fastest that actually returns "choices"); else a verified-working model.
+    // The old "claude-sonnet-4-6" (hyphen form) and even anthropic/claude-sonnet-5.5
+    // are PHANTOMS for our key: they list in /v1/models but 404 on
+    // /chat/completions ("Function ... Not found for account ..."). Picking
+    // them made every corral workflow depend on a model that never answers.
+    model:
+      process.env.NIM_MODEL ||
+      pickModelWinner() ||
+      "nvidia/nemotron-3.5-lightning-30b-a3b",
     systemPrompt,
     cwd: REPO_ROOT,
     dangerouslySkipPermissions: true,
