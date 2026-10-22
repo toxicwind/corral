@@ -1,0 +1,4 @@
+
+# corral scratch from local CLI re-runs (workflow gen)
+.corral/
+tsconfig.tsbuildinfo
