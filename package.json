@@ -11,7 +11,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./selectors": "./src/selectors.ts",
-    "./components": "./src/components/index.ts"
+    "./components": "./src/components/index.ts",
+    "./delendai": "./src/delendai/cli.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
