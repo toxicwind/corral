@@ -1,0 +1,7 @@
+# corral — autonomous rig task wiring (Phase-B).
+# bin/run = dry-run orchestrator verification; bin/check = fast PASS/FAIL gate.
+[tasks]
+run = "./bin/run"
+check = "./bin/check"
+test = "bun test tests/"
+typecheck = "bun run typecheck"

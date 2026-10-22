@@ -1,6 +1,7 @@
 
 # corral scratch from local CLI re-runs (workflow gen)
 .corral/
+.super-ralph/
 tsconfig.tsbuildinfo
 
 # delendai is a standalone peer clone (de-submoduled), referenced not owned

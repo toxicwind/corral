@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# corral — orchestration SSOT autonomous rig (bin/check).
+#
+# Self-test gate (PASS / FAIL). Fast, non-destructive, no live fleet writes:
+#   1. bun is available; corral CLI boots (--help exits 0).
+#   2. Core orchestration unit tests pass (fast set; heavy e2e excluded so the
+#      gate stays a quick PASS/FAIL on the orchestrator's own logic).
+#   3. Reports typecheck status as a diagnostic (pre-existing TS drift in
+#      src/delendai/optimizer.ts / src/cli/index.ts is surfaced as a WARN, not
+#      a hard FAIL — tickets belong to the delendai refactor, not this rig).
+#   For live-fleet supervision checks see fleetd/fleet-ops rigs; this does not
+#   touch running daemons.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+echo "== corral check: start =="
+bunbin="$(readlink -f "$(command -v bun 2>/dev/null || true)" 2>/dev/null || true)"
+for cand in /home/toxic/.bun/bin/bun "$bunbin" /usr/local/bin/bun /usr/bin/bun; do
+  [ -x "$cand" ] && { real_bun="$cand"; break; }
+done
+[ -n "${real_bun:-}" ] || { echo "FAIL: bun not found"; exit 1; }
+echo "using bun: $real_bun"
+
+echo "-- CLI boots --"
+"$real_bun" run src/cli/index.ts --help >/dev/null 2>&1 \
+  || { echo "FAIL: corral CLI cannot boot"; exit 1; }
+echo "OK: corral CLI boots"
+
+echo "-- orchestration unit tests (fast set) --"
+out="$("$real_bun" test tests/timingRecovery.test.ts tests/finite-default.test.ts \
+       tests/exactReply.test.ts tests/routing-regression.test.ts \
+       tests/telemetric-oracle.test.ts tests/nimProxy.test.ts 2>&1)"
+fail="$(echo "$out" | grep -cE "[0-9]+ fail" )"
+echo "$out" | grep -iE "[0-9]+ pass|[0-9]+ fail|Ran [0-9]+" | tail -3
+if echo "$out" | grep -qE "[1-9][0-9]* fail"; then
+    echo "FAIL: orchestration unit tests have failures"; exit 1
+fi
+echo "OK: orchestration unit tests pass"
+
+echo "-- typecheck diagnostic (WARN-only; pre-existing delendai refactor TS drift) --"
+tc="$("$real_bun" run typecheck 2>&1 || true)"
+tc_err="$(echo "$tc" | grep -cE "error TS" || true)"
+echo "typecheck TS errors: $tc_err (diagnostic only)"
+echo "$tc" | grep -oE "^src/[^ (]+" | sort -u | sed 's/^/  /' | head -10 || true
+
+echo "== corral check: PASS =="
