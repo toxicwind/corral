@@ -1,1 +1,4 @@
 tsconfig.tsbuildinfo
+
+# delendai is a standalone peer clone (de-submoduled 2026-10-22)
+/delendai/
