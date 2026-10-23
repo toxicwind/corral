@@ -37,51 +37,117 @@ async function main() {
     return;
   }
 
-  // Delend subcommands: `corral delend <init|guard|checkpoint|land>`
-  if (parsed.subcommand === "delend") {
-    const { cmdInit, cmdGuard, cmdCheckpoint, cmdLand } = await import("./delend");
-    const sub = parsed.subcommand;
-    const subarg = parsed.subargs[0];
+  // Delend subcommands: `corral delend <subcommand> [args...]`
+  // Every agentic delend-* primitive is a first-class @delendai/* plugin
+  // (see ranch/barn/corral/delendai/plugins/*); `corral delend` is the unified CLI
+  // dispatcher. init/guard/checkpoint/land come from ./delend (guardian +
+  // merge queue integration); quick|dirty|stash|race|experimental|iterate|
+  // oracle|model-race|audit|route|gh|branch-audit|rig come from the plugins.
+  if (parsed.positional[0] === "delend") {
+    const subarg = parsed.subcommand ?? parsed.positional[1];
+    const restArgs = parsed.subargs.length ? parsed.subargs : parsed.positional.slice(2);
+
+    const D = await import("../delendai");
     switch (subarg) {
       case "init":
-        await cmdInit(requestedCwd);
-        return;
-      case "guard": {
-        // Guard reads proposals from stdin or a JSON file
-        const guardFile = parsed.subargs[1] ?? join(requestedCwd, "delendai", "proposals.json");
-        if (!existsSync(guardFile)) {
-          console.error(`No proposals file at ${guardFile}`);
-          process.exit(1);
-        }
-        const raw = await Bun.file(guardFile).text();
-        const proposals = JSON.parse(raw);
-        cmdGuard(proposals);
-        return;
-      }
-      case "checkpoint": {
-        // Checkpoint reads tickets from Smithers DB
-        const { selectAllTickets } = await import("../selectors");
-        const { Database } = await import("bun:sqlite");
-        const dbPath = join(requestedCwd, ".smithers", "workflow.db");
-        const db = new Database(dbPath, { readonly: true });
-        // Fetch tickets that have reports ready
-        const tickets = db.query("SELECT * FROM tickets ORDER BY priority DESC, created_at ASC").all();
-        cmdCheckpoint(tickets);
-        db.close();
-        return;
-      }
+      case "guard":
+      case "checkpoint":
       case "land": {
-        const maxDepth = parseInt(getFlagString(parsed.flags, "max-speculative-depth") ?? "3", 10);
-        // Route to AgenticMergeQueue — in production this invokes the React component
-        // For CLI, we print the merge plan
-        console.log("DelendAI Land — merge queue ready");
-        console.log(`  Max speculative depth: ${maxDepth}`);
-        console.log("  Invoke the AgenticMergeQueue component to execute.");
+        const { cmdInit, cmdGuard, cmdCheckpoint, cmdLand } = await import("./delend");
+        switch (subarg) {
+          case "init":
+            await cmdInit(requestedCwd);
+            return;
+          case "guard": {
+            const guardFile = restArgs[0] ?? join(requestedCwd, "delendai", "proposals.json");
+            if (!existsSync(guardFile)) {
+              console.error(`No proposals file at ${guardFile}`);
+              process.exit(1);
+            }
+            const raw = await Bun.file(guardFile).text();
+            const proposals = JSON.parse(raw);
+            cmdGuard(proposals);
+            return;
+          }
+          case "checkpoint": {
+            const { selectAllTickets } = await import("../selectors");
+            const { Database } = await import("bun:sqlite");
+            const dbPath = join(requestedCwd, ".smithers", "workflow.db");
+            const db = new Database(dbPath, { readonly: true });
+            const tickets = db.query("SELECT * FROM tickets ORDER BY priority DESC, created_at ASC").all();
+            cmdCheckpoint(tickets);
+            db.close();
+            return;
+          }
+          case "land": {
+            const maxDepth = parseInt(getFlagString(parsed.flags, "max-speculative-depth") ?? "3", 10);
+            console.log("DelendAI Land — merge queue ready");
+            console.log(`  Max speculative depth: ${maxDepth}`);
+            console.log("  Invoke the AgenticMergeQueue component to execute.");
+            return;
+          }
+        }
+        return;
+      }
+      // Agentic primitives — unified `delend` dispatcher
+      case "quick": {
+        const rc = await D.workRefs.quickMain(restArgs);
+        process.exit(rc);
+        return;
+      }
+      case "dirty": {
+        process.exit(D.workRefs.workingDirtyMain(restArgs));
+        return;
+      }
+      case "stash": {
+        process.exit(D.workRefs.stashOptimizeMain(restArgs));
+        return;
+      }
+      case "race": {
+        process.exit(await D.codeRace.main(restArgs));
+        return;
+      }
+      case "experimental": {
+        process.exit(D.experimental.main(restArgs));
+        return;
+      }
+      case "iterate": {
+        process.exit(D.iterate.main(restArgs));
+        return;
+      }
+      case "oracle": {
+        process.exit(D.oracleMarket.main(restArgs));
+        return;
+      }
+      case "model-race": {
+        process.exit(D.modelRace.main(restArgs));
+        return;
+      }
+      case "audit": {
+        process.exit(D.forgeAudit.main(restArgs));
+        return;
+      }
+      case "route": {
+        process.exit(D.intentRouter.main(restArgs));
+        return;
+      }
+      case "gh": {
+        process.exit(D.globalGh.main(restArgs));
+        return;
+      }
+      case "branch-audit": {
+        process.exit(D.globalGh.branchAuditMain(restArgs));
+        return;
+      }
+      case "rig": {
+        process.exit(D.rigC2.main(restArgs));
         return;
       }
       default:
         console.error(`Unknown delend subcommand: ${subarg}`);
-        console.log("Available: init, guard, checkpoint, land");
+        console.log(
+          "Available: init | guard | checkpoint | land | quick | dirty | stash | race | experimental | iterate | oracle | model-race | audit | route | gh | branch-audit | rig",
+        );
         process.exit(1);
     }
   }

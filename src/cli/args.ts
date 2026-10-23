@@ -17,6 +17,12 @@ const BOOLEAN_FLAGS = new Set([
   "skip-questions",
   "check-env",
   "report",
+  "auto-apply",
+  "push",
+  "no-push",
+  "keep",
+  "merge-ready",
+  "local-only",
 ]);
 
 export function printHelp(): void {
@@ -42,6 +48,19 @@ export function printHelp(): void {
     ["delend guard", "Validate pending proposals against guardian rules"],
     ["delend checkpoint", "Checkpoint work to the merge queue (shared-checkout-merge)"],
     ["delend land", "Run the AgenticMergeQueue to land resolved tickets"],
+    ["delend quick -m <msg>", "Checkpoint staged/explicit paths to a work-ref and push"],
+    ["delend dirty [checkpoint|status|doctor]", "Dirty-tree snapshot / status / doctor"],
+    ["delend stash [checkpoint|stash-list|stash-pop]", "Stash-optimize reconciliation"],
+    ["delend race \"<cmd>\"", "Sub-4s breach auto-racer (forge borrow + code-race)"],
+    ["delend experimental --brief <goal>", "Divergent conjecture + probe + heal"],
+    ["delend iterate --goal <g> --workdir <d>", "Sync-feedback iteration driver"],
+    ["delend oracle <loop|status|apply>", "Recursive oracle market loop"],
+    ["delend model-race --provider P", "Modular profile model runner"],
+    ["delend audit \"<query>\"", "Forge attestation audit (borrow+retrieve+papers)"],
+    ["delend route \"<instruction>\"", "Fast-intent routing to the right primitive"],
+    ["delend gh <org/repo|url> [audit-main|raw|git...]", "Global GitHub primitive"],
+    ["delend branch-audit [--repo <path|url>]", "Branch audit vs main for ANY repo"],
+    ["delend rig [--ledger|--workdir|--symlink]", "C2 rig diagnostics"],
   ]);
   console.log("\nExamples:");
   console.log('  corral "Build a React todo app"');
