@@ -47,25 +47,25 @@ export {
 } from "./optimizer";
 
 // ─── Agentic delend-* primitives (first-class @delendai/* plugins) ──
-export * as workRefs from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/work-refs/src/index.ts";
-export * as codeRace from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/code-race/src/index.ts";
-export * as experimental from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/experimental/src/index.ts";
-export * as iterate from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/iterate/src/index.ts";
-export * as oracleMarket from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/oracle-market/src/index.ts";
-export * as modelRace from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/model-race/src/index.ts";
-export * as forgeAudit from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/forge-audit/src/index.ts";
-export * as intentRouter from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/intent-router/src/index.ts";
-export * as globalGh from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/global-gh/src/index.ts";
-export * as rigC2 from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/rig-c2/src/index.ts";
+export * as workRefs from "/home/toxic/pens/barn/corral/delendai/plugins/work-refs/src/index.ts";
+export * as codeRace from "/home/toxic/pens/barn/corral/delendai/plugins/code-race/src/index.ts";
+export * as experimental from "/home/toxic/pens/barn/corral/delendai/plugins/experimental/src/index.ts";
+export * as iterate from "/home/toxic/pens/barn/corral/delendai/plugins/iterate/src/index.ts";
+export * as oracleMarket from "/home/toxic/pens/barn/corral/delendai/plugins/oracle-market/src/index.ts";
+export * as modelRace from "/home/toxic/pens/barn/corral/delendai/plugins/model-race/src/index.ts";
+export * as forgeAudit from "/home/toxic/pens/barn/corral/delendai/plugins/forge-audit/src/index.ts";
+export * as intentRouter from "/home/toxic/pens/barn/corral/delendai/plugins/intent-router/src/index.ts";
+export * as globalGh from "/home/toxic/pens/barn/corral/delendai/plugins/global-gh/src/index.ts";
+export * as rigC2 from "/home/toxic/pens/barn/corral/delendai/plugins/rig-c2/src/index.ts";
 
 // Re-export plugin default exports for delendai.config.json plugin registration.
-export { default as workRefsPlugin } from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/work-refs/src/index.ts";
-export { default as codeRacePlugin } from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/code-race/src/index.ts";
-export { default as experimentalPlugin } from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/experimental/src/index.ts";
-export { default as iteratePlugin } from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/iterate/src/index.ts";
-export { default as oracleMarketPlugin } from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/oracle-market/src/index.ts";
-export { default as modelRacePlugin } from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/model-race/src/index.ts";
-export { default as forgeAuditPlugin } from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/forge-audit/src/index.ts";
-export { default as intentRouterPlugin } from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/intent-router/src/index.ts";
-export { default as globalGhPlugin } from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/global-gh/src/index.ts";
-export { default as rigC2Plugin } from "/home/toxic/estate/ranch/barn/corral/delendai/plugins/rig-c2/src/index.ts";
+export { default as workRefsPlugin } from "/home/toxic/pens/barn/corral/delendai/plugins/work-refs/src/index.ts";
+export { default as codeRacePlugin } from "/home/toxic/pens/barn/corral/delendai/plugins/code-race/src/index.ts";
+export { default as experimentalPlugin } from "/home/toxic/pens/barn/corral/delendai/plugins/experimental/src/index.ts";
+export { default as iteratePlugin } from "/home/toxic/pens/barn/corral/delendai/plugins/iterate/src/index.ts";
+export { default as oracleMarketPlugin } from "/home/toxic/pens/barn/corral/delendai/plugins/oracle-market/src/index.ts";
+export { default as modelRacePlugin } from "/home/toxic/pens/barn/corral/delendai/plugins/model-race/src/index.ts";
+export { default as forgeAuditPlugin } from "/home/toxic/pens/barn/corral/delendai/plugins/forge-audit/src/index.ts";
+export { default as intentRouterPlugin } from "/home/toxic/pens/barn/corral/delendai/plugins/intent-router/src/index.ts";
+export { default as globalGhPlugin } from "/home/toxic/pens/barn/corral/delendai/plugins/global-gh/src/index.ts";
+export { default as rigC2Plugin } from "/home/toxic/pens/barn/corral/delendai/plugins/rig-c2/src/index.ts";
