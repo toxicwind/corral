@@ -1,0 +1,374 @@
+{
+  "product": "corral",
+  "path": "/home/toxic/pens/ranch/products/corral",
+  "files": 54,
+  "detected_at": "2026-10-30T06:11:06.168855Z",
+  "env_vars": {
+    "ANTHROPIC_API_KEY": [
+      "src/nimProxy.ts",
+      "tests/nimProxy.test.ts"
+    ],
+    "ANTHROPIC_BASE_URL": [
+      "bin/claude-shim-wrapper.sh",
+      "src/cli/env.ts",
+      "tests/nimProxy.test.ts"
+    ],
+    "CLAUDE_CODE_SUBAGENT_MODEL": [
+      "bin/claude-shim-wrapper.sh"
+    ],
+    "CLAUDE_REAL_BIN": [
+      "bin/claude-shim-wrapper.sh"
+    ],
+    "CORRAL_REACT_LOOP": [
+      "bin/claude-shim-wrapper.sh"
+    ],
+    "CORRAL_SECRETS_PATH": [
+      "bin/claude-shim-wrapper.sh",
+      "src/cli/env.ts"
+    ],
+    "CUTTINGGATE_PORT": [
+      "src/cli/env.ts"
+    ],
+    "CUTTINGGATE_URL": [
+      "src/cli/env.ts"
+    ],
+    "DEBUG": [
+      "src/cli/index.ts"
+    ],
+    "DEFAULT_ROUTER_PORT": [
+      "src/nimProxy.ts"
+    ],
+    "ESTATE_ROUTER_PORT": [
+      "src/cli/env.ts"
+    ],
+    "ESTATE_ROUTER_URL": [
+      "src/cli/env.ts",
+      "src/nimProxy.ts"
+    ],
+    "FLOCK_API_KEY": [
+      "src/nimProxy.ts",
+      "tests/nimProxy.test.ts",
+      "tests/routing-regression.test.ts"
+    ],
+    "FLOCK_BASE_URL": [
+      "src/nimProxy.ts",
+      "tests/routing-regression.test.ts"
+    ],
+    "FLOCK_MODEL": [
+      "src/nimProxy.ts",
+      "tests/routing-regression.test.ts"
+    ],
+    "FLOCK_PORT": [
+      "src/nimProxy.ts"
+    ],
+    "NIM_BASE_URL": [
+      "bin/claude-shim-wrapper.sh",
+      "tests/nimProxy.test.ts",
+      "tests/routing-regression.test.ts"
+    ],
+    "NIM_MODEL": [
+      "bin/claude-shim-wrapper.sh",
+      "src/cli/generator.ts",
+      "tests/nimProxy.test.ts",
+      "tests/routing-regression.test.ts"
+    ],
+    "NIM_PROXY_API_KEY": [
+      "bin/claude-shim-wrapper.sh",
+      "src/nimProxy.ts",
+      "tests/nimProxy.test.ts",
+      "tests/routing-regression.test.ts"
+    ],
+    "NIM_PROXY_BASE_URL": [
+      "src/nimProxy.ts",
+      "tests/nimProxy.test.ts"
+    ],
+    "NIM_PROXY_MODEL": [
+      "src/nimProxy.ts",
+      "tests/nimProxy.test.ts"
+    ],
+    "NO_COLOR": [
+      "src/ui/cli-style.ts"
+    ],
+    "NVIDIA_API_KEY": [
+      "bin/claude-shim-wrapper.sh",
+      "src/nimProxy.ts",
+      "tests/nimProxy.test.ts",
+      "tests/routing-regression.test.ts"
+    ],
+    "REQUEST_MARKER": [
+      "src/mergeQueue/prompt.ts"
+    ],
+    "TERM": [
+      "src/ui/cli-style.ts"
+    ],
+    "_secrets_path": [
+      "bin/claude-shim-wrapper.sh"
+    ],
+    "activeJobsTable": [
+      "src/components/TicketScheduler.tsx"
+    ],
+    "age": [
+      "src/components/TicketScheduler.tsx"
+    ],
+    "agentPoolContext": [
+      "src/components/TicketScheduler.tsx"
+    ],
+    "answersPath": [
+      "src/cli/interactive-questions.ts"
+    ],
+    "avgStr": [
+      "src/agentRegistry.ts"
+    ],
+    "choicesBlock": [
+      "src/cli/clarifications.ts"
+    ],
+    "cmd": [
+      "src/cli/workspace.ts",
+      "src/components/AgenticMergeQueue.tsx",
+      "src/components/ClarifyingQuestions.tsx",
+      "src/components/InterpretConfig.tsx",
+      "src/mergeQueue/prompt.ts"
+    ],
+    "code": [
+      "src/components/ClarifyingQuestions.tsx",
+      "src/mergeQueue/ops.ts",
+      "tests/finite-default.test.ts"
+    ],
+    "colored": [
+      "src/ui/cli-style.ts"
+    ],
+    "command": [
+      "src/mergeQueue/ops.ts"
+    ],
+    "deltaStr": [
+      "src/telemetricOracle.ts"
+    ],
+    "description": [
+      "src/components/SuperRalph.tsx"
+    ],
+    "destinationRev": [
+      "src/mergeQueue/ops.ts"
+    ],
+    "detail": [
+      "src/mergeQueue/ops.ts",
+      "src/report/renderReport.ts"
+    ],
+    "dir": [
+      "src/cli/workspace.ts"
+    ],
+    "displayValue": [
+      "src/cli/interactive-questions.ts"
+    ],
+    "done": [
+      "src/components/Monitor.tsx",
+      "src/report/renderReport.ts"
+    ],
+    "elapsed": [
+      "src/components/Monitor.tsx"
+    ],
+    "errorHtml": [
+      "src/report/renderReport.ts"
+    ],
+    "exitCode": [
+      "src/cli/runner.ts"
+    ],
+    "finalHtml": [
+      "src/report/renderReport.ts"
+    ],
+    "focusBlock": [
+      "src/components/TicketScheduler.tsx"
+    ],
+    "freeSlots": [
+      "src/components/TicketScheduler.tsx"
+    ],
+    "highlight": [
+      "src/cli/interactive-questions.ts"
+    ],
+    "importPrefix": [
+      "src/cli/generator.ts"
+    ],
+    "index": [
+      "src/ui/cli-style.ts"
+    ],
+    "label": [
+      "src/components/Monitor.tsx",
+      "src/ui/cli-style.ts"
+    ],
+    "lang": [
+      "src/components/Job.tsx"
+    ],
+    "lastError": [
+      "src/structuredRecovery.ts"
+    ],
+    "mainBranch": [
+      "src/components/AgenticMergeQueue.tsx"
+    ],
+    "maxConcurrency": [
+      "src/components/TicketScheduler.tsx"
+    ],
+    "maxIterations": [
+      "src/cli/generator.ts"
+    ],
+    "maxSpeculativeDepth": [
+      "src/components/AgenticMergeQueue.tsx"
+    ],
+    "mergedCodeFeedback": [
+      "src/components/Job.tsx"
+    ],
+    "msg": [
+      "src/ui/cli-style.ts"
+    ],
+    "name": [
+      "src/components/ClarifyingQuestions.tsx",
+      "src/components/InterpretConfig.tsx",
+      "src/components/Job.tsx",
+      "src/ui/cli-style.ts"
+    ],
+    "next": [
+      "src/components/TicketScheduler.tsx"
+    ],
+    "now": [
+      "src/components/TicketScheduler.tsx"
+    ],
+    "num": [
+      "src/cli/interactive-questions.ts"
+    ],
+    "pad": [
+      "src/ui/cli-style.ts"
+    ],
+    "pct": [
+      "src/report/renderReport.ts",
+      "src/timing.ts",
+      "src/ui/cli-style.ts"
+    ],
+    "pipelineStage": [
+      "src/components/TicketScheduler.tsx"
+    ],
+    "postLandCmds": [
+      "src/components/AgenticMergeQueue.tsx"
+    ],
+    "preLandCmds": [
+      "src/components/AgenticMergeQueue.tsx"
+    ],
+    "prefix": [
+      "src/cli/interactive-questions.ts",
+      "src/components/Job.tsx",
+      "src/mergeQueue/ops.ts"
+    ],
+    "prompt": [
+      "src/components/ClarifyingQuestions.tsx"
+    ],
+    "questionsBlock": [
+      "src/cli/clarifications.ts"
+    ],
+    "queueTable": [
+      "src/components/AgenticMergeQueue.tsx"
+    ],
+    "rateStr": [
+      "src/agentRegistry.ts"
+    ],
+    "reason": [
+      "src/mergeQueue/coordinator.ts"
+    ],
+    "removed": [
+      "src/cli/workspace.ts"
+    ],
+    "replyBytes": [
+      "src/components/CompletionValidator.tsx"
+    ],
+    "repoRoot": [
+      "src/cli/runner.ts",
+      "src/components/AgenticMergeQueue.tsx",
+      "src/components/ClarifyingQuestions.tsx",
+      "src/components/InterpretConfig.tsx"
+    ],
+    "reportPath": [
+      "src/cli/runner.ts"
+    ],
+    "requestedCwd": [
+      "src/cli/workspace.ts"
+    ],
+    "reset": [
+      "src/cli/interactive-questions.ts"
+    ],
+    "retestNote": [
+      "src/mergeQueue/coordinator.ts"
+    ],
+    "root": [
+      "src/report/renderReport.ts"
+    ],
+    "routerPort": [
+      "src/cli/env.ts"
+    ],
+    "routerUrl": [
+      "src/cli/env.ts"
+    ],
+    "runId": [
+      "src/cli/runner.ts",
+      "src/report/renderReport.ts"
+    ],
+    "sessionId": [
+      "src/components/ClarifyingQuestions.tsx"
+    ],
+    "slug": [
+      "src/cli/workspace.ts"
+    ],
+    "specsPath": [
+      "src/components/Job.tsx"
+    ],
+    "stamp": [
+      "src/cli/workspace.ts"
+    ],
+    "status": [
+      "src/agentRegistry.ts"
+    ],
+    "stderr": [
+      "tests/finite-default.test.ts"
+    ],
+    "stdout": [
+      "tests/finite-default.test.ts"
+    ],
+    "stepsHtml": [
+      "src/report/renderReport.ts"
+    ],
+    "suffix": [
+      "src/durability.ts",
+      "src/mergeQueue/ops.ts"
+    ],
+    "table": [
+      "src/durability.ts"
+    ],
+    "task": [
+      "src/agentRegistry.ts"
+    ],
+    "text": [
+      "src/ui/cli-style.ts"
+    ],
+    "ticketId": [
+      "src/mergeQueue/coordinator.ts",
+      "src/mergeQueue/ops.ts",
+      "src/selectors.ts"
+    ],
+    "ticketTable": [
+      "src/components/TicketResume.tsx"
+    ],
+    "timeStr": [
+      "src/agentRegistry.ts"
+    ],
+    "total": [
+      "src/agentRegistry.ts",
+      "src/components/Monitor.tsx",
+      "src/report/renderReport.ts",
+      "src/ui/cli-style.ts"
+    ],
+    "uniq": [
+      "src/cli/workspace.ts"
+    ],
+    "workspace": [
+      "src/cli/workspace.ts"
+    ],
+    "worstCodeSeverity": [
+      "src/components/Job.tsx"
+    ]
+  }
+}

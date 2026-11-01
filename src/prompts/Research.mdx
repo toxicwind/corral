@@ -1,0 +1,34 @@
+RESEARCH PHASE — Ticket: {props.ticketId}
+
+Title: {props.ticketTitle}
+Description: {props.ticketDescription}
+Category: {props.ticketCategory}
+
+Your job is to gather all reference materials needed to implement this ticket.
+
+{props.evictionContext ? `\n## Merge Queue Eviction Context\n\nThis ticket was previously evicted from the speculative merge queue.\nUse this context to focus your investigation on the failure/conflict root cause:\n\n${props.evictionContext}\n` : ''}
+
+## Reference Paths
+
+{props.referencePaths && props.referencePaths.length > 0 ? `Read these reference paths:\n${props.referencePaths.map(p => `- ${p}`).join('\n')}` : ''}
+
+## Steps
+
+1. **Read the specs** — Review all relevant specification documents
+2. **Read reference materials** — Browse reference documentation for patterns and examples
+3. **Read existing implementation** — Read any files listed in the ticket's relevantFiles
+4. **Write context file** — Write {props.contextFilePath} with all paths and summaries
+
+{props.referenceFiles && props.referenceFiles.length > 0 ? `\nHinted reference files:\n${props.referenceFiles.map(f => `- ${f}`).join('\n')}` : ''}
+
+{props.relevantFiles && props.relevantFiles.length > 0 ? `\nRelevant codebase files:\n${props.relevantFiles.map(f => `- ${f}`).join('\n')}` : ''}
+
+## Commit
+
+After writing the context file:
+```
+jj describe -m "📝 docs({props.ticketCategory}): gather research for {props.ticketId}"
+jj new
+jj bookmark set ticket/{props.ticketId} -r @
+jj git push --bookmark ticket/{props.ticketId}
+```
