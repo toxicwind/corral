@@ -5,7 +5,7 @@
  * Root cause chain:
  *  1. BASH_ENV=/home/toxic/.bashrc.env did `set -a; source ~/.secrets`,
  *     clobbering the corral CLI's per-run routing (NIM_BASE_URL=:25193 flock)
- *     back to the stale .secrets value (:25104 broken estate router) in
+ *     back to the stale .secrets value (:25104 broken Pens router) in
  *     every bash subprocess of the agent spawn chain.
  *  2. The claude shim wrapper mapped the deprecated NIM_PROXY_API_KEY alias
  *     over the caller-provided NVIDIA_API_KEY unconditionally, so agents

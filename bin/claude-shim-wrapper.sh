@@ -2,7 +2,7 @@
 # claude shim wrapper — portable version
 # Routes all model traffic through local proxy, with ReAct loop for MCP tool support
 # 
-# Original hardcoded ~[old-ranch-path]/.secrets and ~[old-ranch-path]/estate paths.
+# Original hardcoded ~[old-ranch-path]/.secrets and ~[old-ranch-path]/Pens paths.
 # This version uses env vars and $HOME, works for any user.
 #
 # Install: symlink to ~/.local/bin/claude

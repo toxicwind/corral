@@ -4,7 +4,7 @@ import { TelemetricOracle, type TelemetryVector } from "../src/telemetricOracle"
 describe("TelemetricOracle — Non-Invasive Database & Telemetry Grounding", () => {
   const oracle = new TelemetricOracle(300_000);
 
-  test("parses canonical Estate HUD telemetry string accurately", () => {
+  test("parses canonical Pens HUD telemetry string accurately", () => {
     const raw = "[2026-09-22 07:43:59] Δ 1m33s | In: 2.9K | Out: 1.1K | Total: 268K | 5.9s (115.0/s)";
     const vec = oracle.parseHudLine(raw);
     expect(vec).not.toBeNull();

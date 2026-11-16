@@ -10,7 +10,7 @@
 [![Effect](https://img.shields.io/badge/Effect-4.0.0--beta.102-ff0000?style=flat-square)](https://effect.website)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](./CONTRIBUTING.md)
 
-**Corral** is a hardened fork of [super-ralph](https://github.com/roninjin10/super-ralph) built for estate agent fleets — parallel ticket execution, speculative landing, and zero-merge-conflict orchestration on top of [Smithers / smthrs](https://github.com/roninjin10/smithers).
+**Corral** is a hardened fork of [super-ralph](https://github.com/roninjin10/super-ralph) built for Pens agent fleets — parallel ticket execution, speculative landing, and zero-merge-conflict orchestration on top of [Smithers / smthrs](https://github.com/roninjin10/smithers).
 
 If your original fork was a mess of hardcoded `/home/toxic` paths, 1189-line CLI files, duplicate deps, and ranch-specific shims — this is the clean replacement you can `rm -rf` and drop in.
 
@@ -87,12 +87,12 @@ Each iteration schedules, executes, and merges. Shared `allWorkComplete` predica
 
 ```bash
 # 1. Replace old mess with clean
-rm -rf ~/estate/ranch/corral
-tar -xzf corral-clean.tar.gz -C ~/estate/ranch/
-mv ~/estate/ranch/corral-clean ~/estate/ranch/corral
+rm -rf ~/Pens/ranch/corral
+tar -xzf corral-clean.tar.gz -C ~/Pens/ranch/
+mv ~/Pens/ranch/corral-clean ~/Pens/ranch/corral
 
 # 2. Install
-cd ~/estate/ranch/corral
+cd ~/Pens/ranch/corral
 bun install
 
 # 3. Check env (portable, no /home/toxic hardcoded)
@@ -130,7 +130,7 @@ export CLAUDE_REAL_BIN=~/.local/bin/claude.nim-shim-real
 - Git colocated repo (`jj git init --colocate`)
 
 ```bash
-bun add @estate/corral
+bun add @Pens/corral
 # or clone
 git clone https://github.com/roninjin10/super-ralph.git corral
 cd corral
@@ -262,7 +262,7 @@ CLAUDE_REAL_BIN=~/.local/bin/claude.nim-shim-real
 NIM_BASE_URL=http://127.0.0.1:25200/v1
 ```
 
-No more `/home/toxic/pens/estate/ranch/range/bin/gatehouse` hardcoded.
+No more `/home/toxic/pens/Pens/ranch/range/bin/gatehouse` hardcoded.
 
 ---
 
@@ -304,7 +304,7 @@ Tests moved from `src/` to `tests/`:
 
 MIT — see [LICENSE](./LICENSE)
 
-Original super-ralph lineage: William Cory → Ronin Jin → Estate Fleet
+Original super-ralph lineage: William Cory → Ronin Jin → Pens Fleet
 
 ---
 
@@ -336,6 +336,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md)
 ---
 
 <p align="center">
-  <b>🐴 Estate Corral — Run 8 agents in parallel, land without conflicts</b><br/>
+  <b>🐴 Pens Corral — Run 8 agents in parallel, land without conflicts</b><br/>
   <code>rm -rf corral && tar -xzf corral-clean.tar.gz && bun install && corral "ship it"</code>
 </p>

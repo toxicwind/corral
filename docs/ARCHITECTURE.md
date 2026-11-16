@@ -88,7 +88,7 @@ Portable wrapper replaces hardcoded paths:
 Old: source /home/toxic/.secrets
 New: candidates = [CORRAL_SECRETS_PATH, ~/.secrets, ~/.config/corral/secrets, .env], first found wins, caller-provided env wins over file
 
-Old: GATEHOUSE_BIN = "/home/toxic/pens/estate/ranch/range/bin/gatehouse"
+Old: GATEHOUSE_BIN = "/home/toxic/pens/Pens/ranch/range/bin/gatehouse"
 New: GATEHOUSE_BIN env var, default "gatehouse" in PATH
 
 Old: NIM_SHIM_REAL = "/home/toxic/.local/bin/claude.nim-shim-real"

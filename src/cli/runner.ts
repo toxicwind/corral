@@ -122,7 +122,7 @@ export async function runWorkflow(opts: RunWorkflowOpts): Promise<void> {
   const detectedAgents = { claude: true, codex: false, gh: true };
 
   if (!headless) {
-    console.log(`🚀 Estate Corral — Multi-Agent Ticket Orchestration`);
+    console.log(`🚀 Pens Corral — Multi-Agent Ticket Orchestration`);
     console.log(`📁 Repo: ${repoRoot}`);
     console.log(`📝 Prompt: ${promptSourcePath || "inline"}`);
     console.log(`💾 Database: ${join(repoRoot, ".smithers", "db.sqlite")}`);

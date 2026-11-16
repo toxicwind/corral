@@ -29,7 +29,7 @@ the main agent, which stalls in a re-invocation loop and never lands a
    a fast, working summarizer reachable from the running kilo (`freeinference`
    or `hodos`/`openrouter`; local `beellama/exaone-4-0-1-2b-*` family is
    benchmarked at ~27ms p50, quality 2, healthy=1 by the 2026-10-02 roundup
-   weights in `estate-router-ts/roundup-weights.json`).
+   weights in `Pens-router-ts/roundup-weights.json`).
 2. After a compaction, `session_context_epoch` gains a row and the session's
    `time_compacting` is stamped.
 3. No repeat-instance compaction loops: one compaction part per real overflow.
@@ -41,7 +41,7 @@ the main agent, which stalls in a re-invocation loop and never lands a
 - T2 Pick a fast distinct small_model from the roundup benchmark set; note it in
   the config change.
 - T3 Edit both configs so `small_model` differs from `model`.
-- T4 Validate the estate plugins in `/home/toxic/pens/estate/.kilo/plugin/`
+- T4 Validate the Pens plugins in `/home/toxic/pens/Pens/.kilo/plugin/`
   (hodos-strategy / gatehouse / herd-models / autofixer) still register under the
   running kilo without errors.
 - T5 Run one forced compaction on a scratch session; assert a

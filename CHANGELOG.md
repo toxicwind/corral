@@ -24,4 +24,4 @@
 - Portable shim env vars: `CORRAL_SECRETS_PATH`, `GATEHOUSE_BIN`, `GATEHOUSE_CONFIG`, `CLAUDE_REAL_BIN`
 
 ### Original lineage
-- `super-ralph@0.2.5` (William Cory / roninjin10) → `@estate/corral@1.0.0`
+- `super-ralph@0.2.5` (William Cory / roninjin10) → `@Pens/corral@1.0.0`

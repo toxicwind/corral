@@ -1,8 +1,8 @@
 {
-  "name": "@estate/corral",
+  "name": "@Pens/corral",
   "version": "1.0.0",
   "private": true,
-  "description": "Estate Corral \u2014 Multi-agent ticket-driven development & speculative merge queue orchestrator (clean refactor of super-ralph)",
+  "description": "Pens Corral \u2014 Multi-agent ticket-driven development & speculative merge queue orchestrator (clean refactor of super-ralph)",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -52,7 +52,7 @@
     "CHANGELOG.md"
   ],
   "keywords": [
-    "estate",
+    "Pens",
     "corral",
     "ralph",
     "multi-agent",
@@ -63,7 +63,7 @@
     "smthrs",
     "ai-orchestration"
   ],
-  "author": "Estate Fleet (orig. William Cory)",
+  "author": "Pens Fleet (orig. William Cory)",
   "repository": {
     "type": "git",
     "url": "https://github.com/roninjin10/super-ralph.git"
